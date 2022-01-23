@@ -90,3 +90,16 @@ kubectl -n kube-system get secret | grep default-token | cut -d " " -f1)
 kubectl -n kube-system describe secret $token
 
 token=$(kubectl -n kube-system get secret | grep default-token | cut -d " " -f1)
+
+#### Install kubeedge
+
+Download keadmin 
+
+https://github.com/kubeedge/kubeedge/releases
+
+Install
+
+
+keadm init --advertise-address="192.168.1.50"
+
+Status /var/log/kubeedge/cloudcore.log
