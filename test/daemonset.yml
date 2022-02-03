@@ -1,0 +1,16 @@
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: hello-daemonset
+spec:
+  selector:
+      matchLabels:
+        name: hello-daemonset 
+  template:
+    metadata:
+      labels:
+        name: hello-daemonset 
+    spec:
+      containers:
+       - name: httpd
+         image: httpd
