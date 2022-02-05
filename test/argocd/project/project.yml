@@ -1,7 +1,7 @@
 apiVersion: argoproj.io/v1alpha1
 kind: AppProject
 metadata:
-  name: example-project
+  name: kubeedge-project
   namespace: argo-cd
 spec:
   clusterResourceWhitelist:

@@ -257,7 +257,15 @@ sudo systemctl restart edgecore
 ```
 
 
+### ArgoCD rest API
 
+SWAGGER-API
+$ARGOCD_SERVER/swagger-ui
+
+
+curl $ARGOCD_SERVER/api/v1/session -d $'{"username":"admin","password":"password"}'
+
+curl $ARGOCD_SERVER/api/v1/applications -H "Authorization: Bearer $ARGOCD_TOKEN" 
 
 
 

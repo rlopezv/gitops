@@ -1,16 +1,16 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: sample-app
-  namespace: argocd
+  name: kubeedge-app
+  namespace: argo-cd
 spec:
   destination:
-    namespace: kubeedge
+    namespace: kubeedge-app
     server: https://kubernetes.default.svc
-  project: sample-project
+  project: kubeedge-project
   source:
-    path: sample-app/
-    repoURL: https://github.com/rlopezv/argocd.git
+    path: argocd/kubeedge-app/
+    repoURL: https://github.com/rlopezv/gitops.git
     targetRevision: HEAD
   syncPolicy:
     syncOptions:
