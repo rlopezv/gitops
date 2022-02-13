@@ -215,19 +215,53 @@ kubectl -n kube-system describe secret $token
 token=$(kubectl -n kube-system get secret | grep default-token | cut -d " " -f1)
 ```
 
+
+## Prepare nodes
+
+Installing Kubeedge requires manual changes in the rPis
+
+These instructions are for for ubuntu 21 (arm64)
+
+
+**Enable cgroup**
+
+modify /boot/firmware/cmdline.txt add cgroup_enable=memory cgroup_memory=1
+
+**Change hostname**
+
+```
+vi /etc/hosts
+```
+
+After this Reboot
+
+**Install docker**
+
+Using docker script
+
+```
+curl -sSL https://get.docker.com | sh
+```
+
+sudo usermod -aG docker ${USER}
+
+Reboot
+
 #### Install kubeedge
 
 Reference:
 
 - https://kubeedge.io/en/docs/setup/keadm/
 
+
 Download keadmin 
 
-https://github.com/kubeedge/kubeedge/releases
+- https://github.com/kubeedge/kubeedge/releases
 
 
 
-Install ClcoudCore
+
+**Install ClcoudCore**
 
 ```
 keadm init --advertise-address="KUBEDGE_CLOUDCORE_ADDRESS"
@@ -235,12 +269,20 @@ keadm init --advertise-address="KUBEDGE_CLOUDCORE_ADDRESS"
 # Status /var/log/kubeedge/cloudcore.log
 ```
 
-Install EdgeCore
+pkill cloudcore
+nohup cloudcore > cloudcore.log 2>&1 &
+
+**Install EdgeCore**
 
 ```
-keadm join --cloudcore-ipport=KUBEDGE_CLOUDCORE_ADDRESS:10000 --token=<TOKEN>
+keadm join --cloudcore-ipport=KUBEDGE_CLOUDCORE_ADDRESS:10000 --node-name=<NODE-NAME> --token=<TOKEN>
 
-Status /var/log/kubeedge/cloudcore.log
+```
+
+Check status
+
+```
+cat /var/log/kubeedge/cloudcore.log
 ```
 
 Restart cloudcore (Cloud side)
@@ -262,10 +304,75 @@ sudo systemctl restart edgecore
 SWAGGER-API
 $ARGOCD_SERVER/swagger-ui
 
+Obtain token
 
+```
 curl $ARGOCD_SERVER/api/v1/session -d $'{"username":"admin","password":"password"}'
+```
 
+Use API
+```
 curl $ARGOCD_SERVER/api/v1/applications -H "Authorization: Bearer $ARGOCD_TOKEN" 
+```
 
 
+## Install mesh
+
+In order to allow access to containers running in edge nodes is required to install Kubeedge EdgeMesh.
+
+Reference:
+
+- https://github.com/kubeedge/edgemesh
+
+- https://edgemesh.netlify.app/
+
+
+
+**Configure CloudSide**
+
+Install using helm chart
+
+```
+helm install edgemesh \
+--set server.nodeName=desktop-ubuntu \
+--set "server.advertiseAddress={192.168.1.50}" \
+https://raw.githubusercontent.com/kubeedge/edgemesh/main/build/helm/edgemesh.tgz
+```
+
+
+
+**Configure EdgeMesh**
+
+Perform the following steps to configure EdgeMesh on your edge node.
+
+1. Edit /etc/nsswitch.conf.
+
+    ```
+    vi /etc/nsswitch.conf
+    ```
+
+
+2. Add the following content to this file:
+
+    ```
+    hosts: dns files mdns4_minimal 
+    ```
+
+3. Save the file and run the following command to enable IP forwarding:
+
+    ```
+    sudo echo "net.ipv4.ip_forward = 1" >> /etc/sysctl.conf
+    ```
+
+4. Verify ip fowarding:
+
+    ```
+    sudo sysctl -p | grep ip_forward
+    ```
+
+5. Expected result:
+
+    ```
+    net.ipv4.ip_forward = 1
+    ```
 
