@@ -4,22 +4,24 @@ Repository for GitOps Implementation with Kubeedge
 
 # Development Environment
 
-The minimal tools required for creating a development environment to test GitOps.
+The minimal tools required for creating a development environment for testing GitOps implementation in a k8s environment.
 
-- Kubernetes Cluster, microK8s has been used for such purpouse.
-- Helm, for installing required tools in the cluster not supported by microk8s
-- ArgoCD, as gitops supporting tool
+- **Kubernetes Cluster**, *microK8s* has been used for such purpouse.
+- **Helm**, for installing required tools in the cluster not included in microk8s
+- **ArgoCD**, as gitops supporting tool
 
 Two development environments for creating the required Kubernetes Cluster has been used:
 
 - macOs (amd64)
-- Ubuntu 20.04 LTS (amd64)
+- Ubuntu 18.06.04 LTS (amd64)
+- 
 ## macOs
 
 The macOs installation includes instructions to install the tools required to create the cluster using microk8s and inteect with it (helm, kubectl).
 
 ### Steps
 
+Based on *brew*
 #### Required tools
 
 Installation using brew:
@@ -37,11 +39,13 @@ Installation using brew:
 
 #### Install k8s
 
+
 References:
 
 - https://ubuntu.com/tutorials/install-microk8s-on-mac-os#1-overview
 
 - https://microk8s.io/docs/addons
+
 
 Install microk8s using homebrew
 
@@ -93,9 +97,9 @@ Checking configuration
 ```
 kubectl cluster-info
 ```
+  
 
-
-## Ubuntu 20.04 LTS
+## Ubuntu 18.06.04 LTS
 
 Install kubectl using snap
 
@@ -112,7 +116,7 @@ sudo apt-get update
 sudo apt-get install helm
 ```
 
-#### Install k8s
+### Install k8s
 
 References:
 - https://microk8s.io/docs/getting-started
@@ -157,9 +161,7 @@ kubectl cluster-info
 ```
 
 
-
-
-#### Install argoCD
+## Install argoCD
 
 Add helm repo for argoCD
 
@@ -197,9 +199,16 @@ Better approach
 https://medium.com/devopsturkiye/self-managed-argo-cd-app-of-everything-a226eb100cf0
 
 
-Dashboard
+###Dashboard
 
-The Kubernetes Dashboard allows a basic monitoring and managemente of the cluster. Once enabled in microk8s.
+The Kubernetes Dashboard allows a basic monitoring and managemente of the cluster. 
+
+Once enabled in microk8s.
+```
+microk8s enable dashboard
+```
+
+Several options for accessing the dashboard
 
 1. Using fport fowarding
 ```
@@ -243,11 +252,18 @@ Using docker script
 curl -sSL https://get.docker.com | sh
 ```
 
+Add user to docker group
+```
 sudo usermod -aG docker ${USER}
+```
 
 Reboot
+```
+sudo reboot
+```
 
-#### Install kubeedge
+
+**Install kubeedge**
 
 Reference:
 
@@ -259,9 +275,9 @@ Download keadmin
 - https://github.com/kubeedge/kubeedge/releases
 
 
+**Install CloudCore**
 
-
-**Install ClcoudCore**
+Cloudside with k8s cluster access
 
 ```
 keadm init --advertise-address="KUBEDGE_CLOUDCORE_ADDRESS"
@@ -269,10 +285,26 @@ keadm init --advertise-address="KUBEDGE_CLOUDCORE_ADDRESS"
 # Status /var/log/kubeedge/cloudcore.log
 ```
 
+Rebooting
+```
 pkill cloudcore
 nohup cloudcore > cloudcore.log 2>&1 &
+```
+
+Restart cloudcore (Cloud side)
+
+```
+ps aux|grep cloudcore
+kill -9 PID
+<PATH>/cloudcore &
+```
 
 **Install EdgeCore**
+
+Edgeside in nodes
+
+
+Enroll
 
 ```
 keadm join --cloudcore-ipport=KUBEDGE_CLOUDCORE_ADDRESS:10000 --node-name=<NODE-NAME> --token=<TOKEN>
@@ -285,33 +317,25 @@ Check status
 cat /var/log/kubeedge/cloudcore.log
 ```
 
-Restart cloudcore (Cloud side)
-
-```
-ps aux|grep cloudcore
-kill -9 PID
-<PATH>/cloudcore &
-```
-
 Restart edgecore (Edge side)
 ```
 sudo systemctl restart edgecore
 ```
 
-
 ### ArgoCD rest API
 
-SWAGGER-API
+**SWAGGER-API**
 $ARGOCD_SERVER/swagger-ui
 
-Obtain token
+**Obtain token**
 
-```
+```sh
 curl $ARGOCD_SERVER/api/v1/session -d $'{"username":"admin","password":"password"}'
 ```
 
-Use API
-```
+**Use API**
+
+```sh
 curl $ARGOCD_SERVER/api/v1/applications -H "Authorization: Bearer $ARGOCD_TOKEN" 
 ```
 

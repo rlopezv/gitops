@@ -1,10 +1,55 @@
 global:
+  ## Controller
+  controller:
+    affinity:
+      nodeAffinity:
+        requiredDuringSchedulingIgnoredDuringExecution:
+          nodeSelectorTerms:
+            - matchExpressions:
+              - key: node-role.kubernetes.io/edge
+                operator: NotExists
+              - key: node-role.kubernetes.io/agent
+                operator: NotExists
+    metrics:
+    # -- Deploy metrics service
+      enabled: true    
+    serviceMonitor:
+      # -- Enable a prometheus ServiceMonitor
+      enabled: false
   dex:
     enabled: false
+  redis:
+    affinity:
+      nodeAffinity:
+        requiredDuringSchedulingIgnoredDuringExecution:
+          nodeSelectorTerms:
+            - matchExpressions:
+              - key: node-role.kubernetes.io/edge
+                operator: NotExists
+              - key: node-role.kubernetes.io/agent
+                operator: NotExists
   server:
+    affinity:
+      nodeAffinity:
+        requiredDuringSchedulingIgnoredDuringExecution:
+          nodeSelectorTerms:
+            - matchExpressions:
+              - key: node-role.kubernetes.io/edge
+                operator: NotExists
+              - key: node-role.kubernetes.io/agent
+                operator: NotExists
     extraArgs:
       - --insecure
-
+  repoServer:
+    affinity:
+      nodeAffinity:
+        requiredDuringSchedulingIgnoredDuringExecution:
+          nodeSelectorTerms:
+            - matchExpressions:
+              - key: node-role.kubernetes.io/edge
+                operator: NotExists
+              - key: node-role.kubernetes.io/agent
+                operator: NotExists
 ## Argo Configs
 configs:
     # -- Bcrypt hashed admin password
