@@ -167,7 +167,8 @@ Add helm repo for argoCD
 
 helm repo add argo https://argoproj.github.io/argo-helm
 
-ArgoCD can be installed using helm. The values used for it are
+ArgoCD can be installed using helm. The values used for it are  
+
 ```
 helm install argo-cd --create-namespace --namespace argo-cd --values values.yaml argo/argo-cd --debug --dry-run
 ```
@@ -199,7 +200,7 @@ Better approach
 https://medium.com/devopsturkiye/self-managed-argo-cd-app-of-everything-a226eb100cf0
 
 
-###Dashboard
+###  Dashboard
 
 The Kubernetes Dashboard allows a basic monitoring and managemente of the cluster. 
 

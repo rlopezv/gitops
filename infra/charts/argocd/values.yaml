@@ -25,9 +25,9 @@ global:
           nodeSelectorTerms:
             - matchExpressions:
               - key: node-role.kubernetes.io/edge
-                operator: NotExists
+                operator: DoesNotExist
               - key: node-role.kubernetes.io/agent
-                operator: NotExists
+                operator: DoesNotExist
   server:
     affinity:
       nodeAffinity:
@@ -35,9 +35,9 @@ global:
           nodeSelectorTerms:
             - matchExpressions:
               - key: node-role.kubernetes.io/edge
-                operator: NotExists
+                operator: DoesNotExist
               - key: node-role.kubernetes.io/agent
-                operator: NotExists
+                operator: DoesNotExist
     extraArgs:
       - --insecure
   repoServer:
@@ -47,9 +47,9 @@ global:
           nodeSelectorTerms:
             - matchExpressions:
               - key: node-role.kubernetes.io/edge
-                operator: NotExists
+                operator: DoesNotExist
               - key: node-role.kubernetes.io/agent
-                operator: NotExists
+                operator: DoesNotExist
 ## Argo Configs
 configs:
     # -- Bcrypt hashed admin password
