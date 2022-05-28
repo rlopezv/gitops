@@ -1,61 +1,127 @@
-global:
-  ## Controller
-  controller:
-    affinity:
-      nodeAffinity:
-        requiredDuringSchedulingIgnoredDuringExecution:
-          nodeSelectorTerms:
-            - matchExpressions:
-              - key: node-role.kubernetes.io/edge
-                operator: NotExists
-              - key: node-role.kubernetes.io/agent
-                operator: NotExists
-    metrics:
+## Controller
+controller:
+  affinity: 
+    nodeAffinity:
+      requiredDuringSchedulingIgnoredDuringExecution:
+        nodeSelectorTerms:
+          - matchExpressions:
+            - key: node-role.kubernetes.io/edge
+              operator: DoesNotExist
+            - key: node-role.kubernetes.io/agent
+              operator: DoesNotExist
+  ## Application controller metrics configuration
+  metrics:
     # -- Deploy metrics service
-      enabled: true    
+    enabled: true
+## Dex
+dex:
+  # -- Enable dex
+  enabled: false
+## Redis
+redis:
+  # -- Enable redis
+  enabled: true
+  affinity:
+    nodeAffinity:
+      requiredDuringSchedulingIgnoredDuringExecution:
+        nodeSelectorTerms:
+          - matchExpressions:
+            - key: node-role.kubernetes.io/edge
+              operator: DoesNotExist
+            - key: node-role.kubernetes.io/agent
+              operator: DoesNotExist
+## Server
+server:
+  # -- Additional command line arguments to pass to Argo CD server
+  extraArgs:
+    - --insecure
+  # -- Assign custom [affinity] rules to the deployment
+  affinity:
+    nodeAffinity:
+      requiredDuringSchedulingIgnoredDuringExecution:
+        nodeSelectorTerms:
+          - matchExpressions:
+            - key: node-role.kubernetes.io/edge
+              operator: DoesNotExist
+            - key: node-role.kubernetes.io/agent
+              operator: DoesNotExist
+  ## Server metrics service configuration
+  metrics:
+    # -- Deploy metrics service
+    enabled: true
+    service:
+      # -- Metrics service annotations
+      annotations: {}
+      # -- Metrics service labels
+      labels: {}
+      # -- Metrics service port
+      servicePort: 8083
     serviceMonitor:
       # -- Enable a prometheus ServiceMonitor
-      enabled: false
-  dex:
-    enabled: false
-  redis:
-    affinity:
-      nodeAffinity:
-        requiredDuringSchedulingIgnoredDuringExecution:
-          nodeSelectorTerms:
-            - matchExpressions:
-              - key: node-role.kubernetes.io/edge
-                operator: DoesNotExist
-              - key: node-role.kubernetes.io/agent
-                operator: DoesNotExist
-  server:
-    affinity:
-      nodeAffinity:
-        requiredDuringSchedulingIgnoredDuringExecution:
-          nodeSelectorTerms:
-            - matchExpressions:
-              - key: node-role.kubernetes.io/edge
-                operator: DoesNotExist
-              - key: node-role.kubernetes.io/agent
-                operator: DoesNotExist
-    extraArgs:
-      - --insecure
-  repoServer:
-    affinity:
-      nodeAffinity:
-        requiredDuringSchedulingIgnoredDuringExecution:
-          nodeSelectorTerms:
-            - matchExpressions:
-              - key: node-role.kubernetes.io/edge
-                operator: DoesNotExist
-              - key: node-role.kubernetes.io/agent
-                operator: DoesNotExist
+      enabled: true
+      # -- Prometheus ServiceMonitor interval
+      interval: 30s
+      # -- Prometheus [RelabelConfigs] to apply to samples before scraping
+      relabelings: []
+      # -- Prometheus [MetricRelabelConfigs] to apply to samples before ingestion
+      metricRelabelings: []
+      # -- Prometheus ServiceMonitor selector
+      selector: {}
+        # prometheus: kube-prometheus
+
+      # -- Prometheus ServiceMonitor namespace
+      namespace: ""  # monitoring
+      # -- Prometheus ServiceMonitor labels
+      additionalLabels: {}
+## Repo Server
+repoServer:
+  # -- Assign custom [affinity] rules to the deployment
+  affinity:
+    nodeAffinity:
+      requiredDuringSchedulingIgnoredDuringExecution:
+        nodeSelectorTerms:
+          - matchExpressions:
+            - key: node-role.kubernetes.io/edge
+              operator: DoesNotExist
+            - key: node-role.kubernetes.io/agent
+              operator: DoesNotExist
+  ## Repo server metrics service configuration
+  metrics:
+    # -- Deploy metrics service
+    enabled: true
+    service:
+      # -- Metrics service annotations
+      annotations: {}
+      # -- Metrics service labels
+      labels: {}
+      # -- Metrics service port
+      servicePort: 8084
+    serviceMonitor:
+      # -- Enable a prometheus ServiceMonitor
+      enabled: true
+      # -- Prometheus ServiceMonitor interval
+      interval: 30s
+      # -- Prometheus [RelabelConfigs] to apply to samples before scraping
+      relabelings: []
+      # -- Prometheus [MetricRelabelConfigs] to apply to samples before ingestion
+      metricRelabelings: []
+      # -- Prometheus ServiceMonitor selector
+      selector: {}
+        # prometheus: kube-prometheus
+
+      # -- Prometheus ServiceMonitor namespace
+      namespace: "" # "monitoring"
+      # -- Prometheus ServiceMonitor labels
+      additionalLabels: {}
+
 ## Argo Configs
 configs:
+  secret:
     # -- Bcrypt hashed admin password
     ## Argo expects the password in the secret to be bcrypt hashed. You can create this hash with
     ## `htpasswd -nbBC 10 "" $ARGO_PWD | tr -d ':\n' | sed 's/$2y/$2a/'`
-    argocdServerAdminPassword: "$2a$10$wHlRXcweq2wGXiMDbREtVucTOL3VAsAI8JnCZoKfEY.OKmVqIqZ1W"
+    argocdServerAdminPassword: ""
     # -- Admin password modification time. Eg. `"2006-01-02T15:04:05Z"`
     # @default -- `""` (defaults to current time)
     argocdServerAdminPasswordMtime: ""
+
