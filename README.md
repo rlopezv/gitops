@@ -245,6 +245,7 @@ kubectl -n argo-cd get secret argocd-initial-admin-secret -o jsonpath="{.data.pa
 You can create yout own chart for managing argoCD installation as described in:
 
 https://medium.com/devopsturkiye/self-managed-argo-cd-app-of-everything-a226eb100cf0
+https://medium.com/@andrew.kaczynski/gitops-in-kubernetes-argo-cd-and-gitlab-ci-cd-5828c8eb34d6
 
 
 ###  Dashboard
