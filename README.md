@@ -175,7 +175,7 @@ sudo snap info microk8s
 After checking compatibity with kubeedge version  
 
 ```
-sudo snap install microk8s --classic --channel=1.19/stable
+sudo snap install microk8s --classic --channel=1.22/stable
 ```
 
 Enable basic services
@@ -213,9 +213,10 @@ ArgoCD can be installed using helm. The values (values.yml) used for it are avai
 helm repo add argo https://argoproj.github.io/argo-helm
 ```
 
- The values used for it are available in this repository in 
+ The values used for it are available in this repository in infra/charts/argocd
+
 ```sh
-helm install argo-cd --create-namespace --namespace argo-cd --values values.yaml argo/argo-cd --debug --dry-run
+hhelm install argo-cd --create-namespace --namespace argo-cd --values values.yaml --version 4.3.1 argo/argo-cd --debug --dry-run
 ```
 
 NOTES:
