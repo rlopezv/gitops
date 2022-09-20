@@ -438,6 +438,13 @@ Cloudside with k8s cluster access
 keadm init --kube-config ${HOME}/.kube/config --advertise-address "KUBEDGE_CLOUDCORE_ADDRESS"
 ```
 
+Obtain token to enroll edge nodes
+
+```sh
+keadm gettoken --kube-config ${HOME}/.kube/config
+```
+
+
 Status 
 ```sh
 tail -f /var/log/kubeedge/cloudcore.log
@@ -481,7 +488,7 @@ Start service
 systemctl start cloudcore
 ```
 
-Enable automatic start up of service
+Enable automatic start updocker rm -f $(docker ps -a -q) of service
 
 ```
 systemctl enable cloudcore
@@ -502,7 +509,7 @@ Edgeside in nodes
 Enroll
 
 ```
-keadm join --cloudcore-ipport=KUBEDGE_CLOUDCORE_ADDRESS:10000 --node-name=<NODE-NAME> --token=<TOKEN>
+keadm join --cloudcore-ipport=KUBEDGE_CLOUDCORE_ADDRESS:10000 --edgenode-name=<NODE-NAME> --token=<TOKEN> --kubeedge-version=<>
 
 ```
 
@@ -620,5 +627,51 @@ sudo gitlab-runner start
 # Add user to docker group
 
 sudo usermod -aG docker gitlab-runner
+
+```
+
+
+Failed to delete directory /etc/kubeedge/: unlinkat /etc/kubeedge/ca/rootCA.crt: permission denied
+Failed to delete directory /var/lib/kubeedge/: unlinkat /var/lib/kubeedge/edgecore.db: permission denied
+Failed to delete directory /var/lib/edged: open /var/lib/edged: permission denied
+Failed to delete directory /var/lib/dockershim: unlinkat /var/lib/dockershim/sandbox/11f60987807c7668adc539343755ff3dc6c407a613da96abfbb352084942c9b2: permission denied
+
+RBAC (kubernetes-dashboard)
+kubectl -n kubernetes-dashboard create token admin-user
+
+thisisunsafe
+
+## Enable metrics
+
+
+Generate certificates.
+
+### Cloudside
+
+Copy [certgen.sh] to /etc/kubeedge
+
+Declare Kubernetes CA file and key
+
+- K8SCA_FILE, /etc/kubernetes/pki/ca.crt
+- K8SCA_KEY_FILE, /etc/kubernetes/pki/ca.key
+
+In microk8s
+
+- K8SCA_FILE, /var/snap/microk8s/current/certs/ca.crt
+- K8SCA_KEY_FILE, /var/snap/microk8s/current/certs/ca.key
+
+And cloudcore ip server
+
+```sh
+## Set working directory
+cd /etc/kubeedge
+
+# Declare vars
+export CLOUDCOREIPS="192.168.1.50"
+export K8SCA_FILE=/var/snap/microk8s/current/certs/ca.crt
+export K8SCA_KEY_FILE=/var/snap/microk8s/current/certs/ca.key
+
+# Generate certificates
+./certgen.sh stream
 
 ```
