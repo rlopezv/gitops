@@ -626,25 +626,39 @@ sudo useradd --comment 'GitLab Runner' --create-home gitlab-runner --shell /bin/
 sudo gitlab-runner install --user=gitlab-runner --working-directory=/home/gitlab-runner
 sudo gitlab-runner start
 
-# Add user to docker group
-
+# Add user to docker group. Required for kaniko.
 sudo usermod -aG docker gitlab-runner
 
 ```
 
 
-Failed to delete directory /etc/kubeedge/: unlinkat /etc/kubeedge/ca/rootCA.crt: permission denied
-Failed to delete directory /var/lib/kubeedge/: unlinkat /var/lib/kubeedge/edgecore.db: permission denied
-Failed to delete directory /var/lib/edged: open /var/lib/edged: permission denied
-Failed to delete directory /var/lib/dockershim: unlinkat /var/lib/dockershim/sandbox/11f60987807c7668adc539343755ff3dc6c407a613da96abfbb352084942c9b2: permission denied
+> RBAC (kubernetes-dashboard)  
+ kubectl -n kubernetes-dashboard create token admin-user
 
-RBAC (kubernetes-dashboard)
-kubectl -n kubernetes-dashboard create token admin-user
+> When dealing with cert problems in Chrome *thisisunsafe*
 
-thisisunsafe
+## Monitoring (metrics)
+
+- Grafana: https://grafana.com/
+- Prometheus: https://prometheus.io/
+- OpenMetrics: https://github.com/OpenObservability/OpenMetrics/blob/main/specification/OpenMetrics.md
+
+### References
+
+- https://github.com/prometheus-operator/kube-prometheus
+
+- https://github.com/kubeedge/kubeedge/issues/3295
+
+- https://argo-cd.readthedocs.io/en/stable/operator-manual/metrics/
+
+- https://argocd-operator.readthedocs.io/en/latest/usage/insights/
+
+- https://github.com/WasmEdge/WasmEdge
+
 
 ## Enable metrics
 
+- https://kubeedge.io/en/docs/setup/keadm/#enable-kubectl-logs-feature
 
 Generate certificates.
 
