@@ -544,7 +544,349 @@ curl $ARGOCD_SERVER/api/v1/applications -H "Authorization: Bearer $ARGOCD_TOKEN"
 ```
 
 
-## Install mesh
+## Enable Metrics
+
+In order to enable metrics is required to make some actions.
+
+Obtain K8S certificates
+
+### Reference 
+  - https://microk8s.io/docs/services-and-ports
+
+
+
+## Enable metrics
+
+
+Generate certificates.
+
+### Cloudside
+
+The cluster CA is required for enabling comunication between cloudcore and edgecore.
+
+This are usually located in **/etc/kubernetes/pki** in microk8s these are located in **/var/snap/microk8s/current/certs/**
+
+CA file and key
+
+- K8SCA_FILE, /etc/kubernetes/pki/ca.crt
+- K8SCA_KEY_FILE, /etc/kubernetes/pki/ca.key
+
+In microk8s
+
+- K8SCA_FILE, /var/snap/microk8s/current/certs/ca.crt
+- K8SCA_KEY_FILE, /var/snap/microk8s/current/certs/ca.key
+
+It's also required to declare the CLOUDCOREIPs.
+
+Copy [certgen.sh](infra/kubeedge/certgen.sh) to /etc/kubeedge
+
+To generate the certificates required for allowing remote loging
+
+```sh
+## Set working directory
+cd /etc/kubeedge
+
+# Declare vars
+export CLOUDCOREIPS="[servers]"
+export K8SCA_FILE=/var/snap/microk8s/current/certs/ca.crt
+export K8SCA_KEY_FILE=/var/snap/microk8s/current/certs/ca.key
+
+# Generate certificates
+./certgen.sh stream
+
+```
+
+
+## Enable routing
+
+Once these certificates are generated it's required to modify the iptables and the keubedge configuration files on both cloudside and edgeside.
+
+On cloudside
+
+Modify **/etc/kubeedge/config/cloudcore.yaml**
+
+Enable stream
+
+```txt
+cloudStream:
+  # change
+  enable: true
+```
+
+```sh
+export CLOUDCOREIPS="[servers]"
+iptables -t nat -A OUTPUT -p tcp --dport 10350 -j DNAT --to $CLOUDCOREIPS:10003
+```
+
+
+On edge side (every edge node)
+
+Modify **/etc/kubeedge/config/edgecore.yaml**
+
+Enable stream
+
+```txt
+edgeStream:
+  # change
+  enable: true
+  # Check value of cloudserver
+  server: [CLOUDCOREIP]:10004 
+```
+
+```sh
+iptables -F && iptables -t nat -F && iptables -t mangle -F && iptables -X
+```
+
+Restart cloudside and edge side
+
+```sh
+# On cloudside
+systemctl restart cloudcore
+```
+
+
+```sh
+# On edgeside (every edge node)
+systemctl restart edgecore
+```
+
+Once done, tt will be possible to access node statistics throw the common interfaces.
+
+```sh
+# On cloud sice
+curl "http://[NODE_IP]:10350/stats/summary?only_cpu_and_memory=true"
+```
+
+```sh
+# On edge sice
+curl "http://localhost:10350/stats/summary?only_cpu_and_memory=true"
+```
+
+```json
+{
+ "node": {
+  "nodeName": "edgenode01",
+  "systemContainers": [
+   {
+    "name": "kubelet",
+    "startTime": "2022-10-22T16:17:01Z",
+    "cpu": {
+     "time": "2022-10-22T18:45:07Z",
+     "usageNanoCores": 36490670,
+     "usageCoreNanoSeconds": 252662549983
+    },
+    "memory": {
+     "time": "2022-10-22T18:45:07Z",
+     "usageBytes": 30613504,
+     "workingSetBytes": 30613504,
+     "rssBytes": 27066368,
+     "pageFaults": 22869,
+     "majorPageFaults": 0
+    }
+   },
+   {
+    "name": "runtime",
+    "startTime": "2022-10-20T16:47:00Z",
+    "cpu": {
+     "time": "2022-10-22T18:45:13Z",
+     "usageNanoCores": 13118760,
+     "usageCoreNanoSeconds": 1786750198925
+    },
+    "memory": {
+     "time": "2022-10-22T18:45:13Z",
+     "usageBytes": 115150848,
+     "workingSetBytes": 51351552,
+     "rssBytes": 36360192,
+     "pageFaults": 19054431,
+     "majorPageFaults": 297
+    }
+   },
+   {
+    "name": "pods",
+    "startTime": "2022-10-20T16:47:31Z",
+    "cpu": {
+     "time": "2022-10-22T18:45:03Z",
+     "usageNanoCores": 0,
+     "usageCoreNanoSeconds": 0
+    },
+    "memory": {
+     "time": "2022-10-22T18:45:03Z",
+     "availableBytes": 3977527296,
+     "usageBytes": 0,
+     "workingSetBytes": 0,
+     "rssBytes": 0,
+     "pageFaults": 0,
+     "majorPageFaults": 0
+    }
+   }
+  ],
+  "startTime": "2022-10-20T16:47:01Z",
+  "cpu": {
+   "time": "2022-10-22T18:45:02Z",
+   "usageNanoCores": 62053022,
+   "usageCoreNanoSeconds": 9409379988290
+  },
+  "memory": {
+   "time": "2022-10-22T18:45:02Z",
+   "availableBytes": 2643247104,
+   "usageBytes": 2401181696,
+   "workingSetBytes": 1334280192,
+   "rssBytes": 165142528,
+   "pageFaults": 76527,
+   "majorPageFaults": 165
+  },
+  "network": {
+   "time": "2022-10-22T18:45:02Z",
+   "name": "eth0",
+   "rxBytes": 680926297,
+   "rxErrors": 0,
+   "txBytes": 43422651,
+   "txErrors": 0,
+   "interfaces": [
+    {
+     "name": "wlan0",
+     "rxBytes": 0,
+     "rxErrors": 0,
+     "txBytes": 0,
+     "txErrors": 0
+    },
+    {
+     "name": "eth0",
+     "rxBytes": 680926297,
+     "rxErrors": 0,
+     "txBytes": 43422651,
+     "txErrors": 0
+    }
+   ]
+  },
+  "fs": {
+   "time": "2022-10-22T18:45:02Z",
+   "availableBytes": 22324531200,
+   "capacityBytes": 31064162304,
+   "usedBytes": 7425003520,
+   "inodesFree": 1805511,
+   "inodes": 1933312,
+   "inodesUsed": 127801
+  },
+  "runtime": {
+   "imageFs": {
+    "time": "2022-10-22T18:45:02Z",
+    "availableBytes": 22324531200,
+    "capacityBytes": 31064162304,
+    "usedBytes": 1395364102,
+    "inodesFree": 1805511,
+    "inodes": 1933312,
+    "inodesUsed": 127801
+   }
+  },
+  "rlimit": {
+   "time": "2022-10-22T18:45:17Z",
+   "maxpid": 4194304,
+   "curproc": 204
+  }
+ },
+ "pods": []
+}
+```
+
+
+
+## Modify metrics-server deployment
+
+Since edgenodes are not really k8s nodes it's required to customize the metrics-server used for accessing node metrics.
+
+In this case, version 5.2 of metrics server has been used.
+
+```sh
+wget https://github.com/kubernetes-sigs/metrics-server/releases/download/v0.5.2/components.yaml -O deploy.yaml
+```
+
+And customized with the following values:
+
+
+The file is avaliable in [deploy.yaml](infra/metrics-server/deploy.yaml)
+
+Enable hostnetwork mode
+
+```yml
+spec:
+  template:
+    spec:
+      hostNetwork: true
+```
+
+Skip tls insecure
+
+```yml
+spec:
+  template:
+    spec:
+      containers:
+      - args:
+        - --kubelet-insecure-tls
+```
+
+Node selector the service must be deployed in master node
+```yml
+spec:
+  template:
+    spec:
+      nodeSelector:
+        beta.kubernetes.io/arch : amd64
+```
+
+
+Once modified it can be applyed using 
+```sh
+kubectl apply -f deploy.yaml
+```
+
+Once completed the following info should be available
+
+```
+$ kubectl top nodes
+NAME             CPU(cores)   CPU%        MEMORY(bytes)   MEMORY%     
+edgenode01       48m          1%          1272Mi          34%         
+edgenode02       41m          1%          1169Mi          31%         
+rpi3             97m          2%          403Mi           49%         
+ubuntu-desktop   1688m        21%         9959Mi          41%         
+edgenode03       <unknown>    <unknown>   <unknown>       <unknown>  
+```
+
+## Observing
+
+It will use Grafana and Prometheus included in microk8s distribution.
+
+```sh
+microsk8s enable prometheus
+```
+
+Once enabled these can be accesed through port fowarding
+
+Set port-forwarding to enable external access
+
+**PrometheusUI**
+```sh
+$sh microk8s kubectl port-forward -n monitoring service/prometheus-k8s --address 0.0.0.0 9090:9090
+```
+```txt
+Forwarding from 0.0.0.0:9090 -> 9090
+```
+**Grafana UI**
+```sh
+$sh microk8s kubectl port-forward -n monitoring service/grafana --address 0.0.0.0 3000:3000
+```txt
+Forwarding from 0.0.0.0:3000 -> 3000
+```
+
+The metrics consumed in prometheus are configured to obtain data from port 10250.
+
+The edgenodes metrics are avaliable on port 10350, so it's required to modify the endpoints used for retreaving node statistics.
+
+
+
+
+## Install mesh 
 
 In order to allow access to containers running in edge nodes is required to install Kubeedge EdgeMesh.
 
@@ -604,76 +946,7 @@ Perform the following steps to configure EdgeMesh on your edge node.
     net.ipv4.ip_forward = 1
     ```
 
-**Ubuntu 20.04 Jetson Nanp**
 
-https://qengineering.eu/install-ubuntu-20.04-on-jetson-nano.html
-
-https://sleeplessbeastie.eu/2021/12/06/how-to-install-gitlab-runner-on-raspberry-pi/
-
-Install gitlab-runner (armd64)
-
-```sh
-# Download the binary for your system
-sudo curl -L --output /usr/local/bin/gitlab-runner https://gitlab-runner-downloads.s3.amazonaws.com/latest/binaries/gitlab-runner-linux-arm64
-
-# Give it permission to execute
-sudo chmod +x /usr/local/bin/gitlab-runner
-
-# Create a GitLab Runner user
-sudo useradd --comment 'GitLab Runner' --create-home gitlab-runner --shell /bin/bash
-
-# Install and run as a service
-sudo gitlab-runner install --user=gitlab-runner --working-directory=/home/gitlab-runner
-sudo gitlab-runner start
-
-# Add user to docker group
-
-sudo usermod -aG docker gitlab-runner
-
-```
-
-
-Failed to delete directory /etc/kubeedge/: unlinkat /etc/kubeedge/ca/rootCA.crt: permission denied
-Failed to delete directory /var/lib/kubeedge/: unlinkat /var/lib/kubeedge/edgecore.db: permission denied
-Failed to delete directory /var/lib/edged: open /var/lib/edged: permission denied
-Failed to delete directory /var/lib/dockershim: unlinkat /var/lib/dockershim/sandbox/11f60987807c7668adc539343755ff3dc6c407a613da96abfbb352084942c9b2: permission denied
-
-RBAC (kubernetes-dashboard)
-kubectl -n kubernetes-dashboard create token admin-user
 
 thisisunsafe
 
-## Enable metrics
-
-
-Generate certificates.
-
-### Cloudside
-
-Copy [certgen.sh] to /etc/kubeedge
-
-Declare Kubernetes CA file and key
-
-- K8SCA_FILE, /etc/kubernetes/pki/ca.crt
-- K8SCA_KEY_FILE, /etc/kubernetes/pki/ca.key
-
-In microk8s
-
-- K8SCA_FILE, /var/snap/microk8s/current/certs/ca.crt
-- K8SCA_KEY_FILE, /var/snap/microk8s/current/certs/ca.key
-
-And cloudcore ip server
-
-```sh
-## Set working directory
-cd /etc/kubeedge
-
-# Declare vars
-export CLOUDCOREIPS="192.168.1.50"
-export K8SCA_FILE=/var/snap/microk8s/current/certs/ca.crt
-export K8SCA_KEY_FILE=/var/snap/microk8s/current/certs/ca.key
-
-# Generate certificates
-./certgen.sh stream
-
-```
