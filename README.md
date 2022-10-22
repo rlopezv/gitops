@@ -886,7 +886,7 @@ The edgenodes metrics are avaliable on port 10350, so it's required to modify th
 
 
 
-## Install mesh 
+## Install mesh (Optional)
 
 In order to allow access to containers running in edge nodes is required to install Kubeedge EdgeMesh.
 
@@ -895,56 +895,6 @@ Reference:
 - https://github.com/kubeedge/edgemesh
 
 - https://edgemesh.netlify.app/
-
-
-
-**Configure CloudSide**
-
-Install using helm chart
-
-```
-helm install edgemesh \
---set server.nodeName=desktop-ubuntu \
---set "server.advertiseAddress={192.168.1.50}" \
-https://raw.githubusercontent.com/kubeedge/edgemesh/main/build/helm/edgemesh.tgz
-```
-
-
-
-**Configure EdgeMesh**
-
-Perform the following steps to configure EdgeMesh on your edge node.
-
-1. Edit /etc/nsswitch.conf.
-
-    ```
-    vi /etc/nsswitch.conf
-    ```
-
-
-2. Add the following content to this file:
-
-    ```
-    hosts: dns files mdns4_minimal 
-    ```
-
-3. Save the file and run the following command to enable IP forwarding:
-
-    ```
-    sudo echo "net.ipv4.ip_forward = 1" >> /etc/sysctl.conf
-    ```
-
-4. Verify ip fowarding:
-
-    ```
-    sudo sysctl -p | grep ip_forward
-    ```
-
-5. Expected result:
-
-    ```
-    net.ipv4.ip_forward = 1
-    ```
 
 
 
