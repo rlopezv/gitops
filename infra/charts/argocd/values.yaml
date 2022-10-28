@@ -66,11 +66,12 @@ server:
       # -- Prometheus [MetricRelabelConfigs] to apply to samples before ingestion
       metricRelabelings: []
       # -- Prometheus ServiceMonitor selector
-      selector: {}
+      selector:
+        app.kubernetes.io/name: prometheus
         # prometheus: kube-prometheus
 
       # -- Prometheus ServiceMonitor namespace
-      namespace: ""  # monitoring
+      namespace: "monitoring"
       # -- Prometheus ServiceMonitor labels
       additionalLabels: {}
 ## Repo Server
@@ -106,11 +107,12 @@ repoServer:
       # -- Prometheus [MetricRelabelConfigs] to apply to samples before ingestion
       metricRelabelings: []
       # -- Prometheus ServiceMonitor selector
-      selector: {}
+      selector:
+        app.kubernetes.io/name: prometheus
         # prometheus: kube-prometheus
 
       # -- Prometheus ServiceMonitor namespace
-      namespace: "" # "monitoring"
+      namespace: "monitoring"
       # -- Prometheus ServiceMonitor labels
       additionalLabels: {}
 

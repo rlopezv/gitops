@@ -216,7 +216,7 @@ helm repo add argo https://argoproj.github.io/argo-helm
  The values used for it are available in this repository in infra/charts/argocd
 
 ```sh
-hhelm install argo-cd --create-namespace --namespace argo-cd --values values.yaml --version 4.3.1 argo/argo-cd --debug --dry-run
+helm install argo-cd --create-namespace --namespace argo-cd --values values.yaml --version 4.3.1 argo/argo-cd --debug --dry-run
 ```
 
 NOTES:
@@ -654,7 +654,7 @@ Once done, tt will be possible to access node statistics throw the common interf
 
 ```sh
 # On cloud sice
-curl "http://[NODE_IP]:10350/stats/summary?only_cpu_and_memory=true"
+curl "http://[NODE_IP]:10351/stats/summary?only_cpu_and_memory=true"
 ```
 
 ```sh
@@ -855,6 +855,12 @@ edgenode03       <unknown>    <unknown>   <unknown>       <unknown>
 
 ## Observing
 
+Observing can be done using Grafana with Prometheus. Prometheus can be installed in several ways:
+- Using included prometheus in microk8s distribution
+- Unsing the helm chart provided by prometheus-community.
+
+### microk8s
+
 It will use Grafana and Prometheus included in microk8s distribution.
 
 ```sh
@@ -883,9 +889,54 @@ The metrics consumed in prometheus are configured to obtain data from port 10250
 
 The edgenodes metrics are avaliable on port 10350, so it's required to modify the endpoints used for retreaving node statistics.
 
+Since modifing the default exporters included that is a hard job. It's recomended to use the Promehteus chart.
+
+### Prometheus chart
+
+https://github.com/prometheus-community/helm-charts/tree/main/charts/kube-prometheus-stack
+
+Include and update chart in helm repository
+
+```sh
+helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
+helm repo update
+```
+
+```sh
+helm show values prometheus-community/kube-prometheus-stack
+```
+
+Once modified the values to include the configuration required to accesss the metrics endpoints in edgenodes install the chart.
+
+The selected chart must be compatible with kubernetes version.
 
 
+```sh
+helm install prometheus --create-namespace --namespace monitoring --values values.yaml --version [version] prometheus-community/kube-prometheus-stack --debug --dry-run
+```
 
+Check Promethues Service Monitor
+```sh
+kubectl describe service prometheus-operated -n monitoring
+```
+
+```sh
+kubectl port-forward svc/kube-state-metrics 8080:8080
+```
+
+```sh
+kubectl port-forward svc/prometheus-operated 9090:9090
+```
+
+```sh
+kubectl port-forward svc/prometheus-grafana 3000:80
+```
+
+Show service monitors declared
+
+```sh
+kubectl get servicemonitor -monitoring
+```
 ## Install mesh (Optional)
 
 In order to allow access to containers running in edge nodes is required to install Kubeedge EdgeMesh.
