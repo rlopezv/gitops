@@ -1,16 +1,66 @@
 apiVersion: apps/v1
 kind: DaemonSet
 metadata:
-  name: hello-daemonset
+  name: kubeedge-app-daemonset
 spec:
   selector:
-      matchLabels:
-        name: hello-daemonset 
+    matchLabels:
+      app: kubeedge-app-daemonset
   template:
     metadata:
       labels:
-        name: hello-daemonset 
+        app: kubeedge-app-daemonset
     spec:
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+              - matchExpressions:
+                - key: node-role.kubernetes.io/edge
+                  operator: Exists
+                - key: node-role.kubernetes.io/agent
+                  operator: Exists    
       containers:
-       - name: httpd
-         image: httpd
+      - name: kubedge-app
+        image: rlopezv/kubeedge-nginx-app-arm64
+        imagePullPolicy: Always
+        resources:
+          requests:
+            memory: "64Mi"
+            cpu: "250m"
+          limits:
+            memory: "128Mi"
+            cpu: "500m"
+        ports:
+        - containerPort: 8080
+          name: nginx-pod-port
+        readinessProbe:
+          httpGet:
+            scheme: HTTP
+            path: /
+            port: 8080
+          initialDelaySeconds: 10
+          periodSeconds: 5
+        livenessProbe:
+          httpGet:
+            scheme: HTTP
+            path: /
+            port: 8080
+          initialDelaySeconds: 10
+          periodSeconds: 30 
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: kubeedge-app-daemonset
+  name: kubeedge-app-daemonset
+spec:
+  type: NodePort
+  ports:
+    - port: 3000
+      targetPort: nginx-pod-port
+      protocol: TCP
+      name: http
+  selector:
+    app: kubeedge-app-daemonset

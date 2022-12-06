@@ -64,7 +64,7 @@ brew install kubernetes-cli
 brew install helm
 ```
 
-#### Install k8s
+#### Install microk8s
 
 
 *References:*
@@ -85,7 +85,7 @@ Installed microk8s will create a VM for microk8s using multipass
 To create a microk8s cluster (one node)
 
 ```sh
-microk8s install --channel 1.19 --cpu  --mem --disk
+microk8s install --channel 1.21 --cpu  --mem --disk
 ```
 
 ```sh
@@ -262,7 +262,7 @@ Several options for accessing the dashboard
 
 1. Using port fowarding
 ```sh
-kubectl port-forward -n kubernetes-dashboard service/kubernetes-dashboard 8080:443
+kubectl port-forward -n kube-system service/kubernetes-dashboard 8080:443
 ```
 
 To obatin the access token
@@ -873,14 +873,14 @@ Set port-forwarding to enable external access
 
 **PrometheusUI**
 ```sh
-$sh microk8s kubectl port-forward -n monitoring service/prometheus-k8s --address 0.0.0.0 9090:9090
+$ microk8s kubectl port-forward -n monitoring service/prometheus-k8s --address 0.0.0.0 9090:9090
 ```
 ```txt
 Forwarding from 0.0.0.0:9090 -> 9090
 ```
 **Grafana UI**
 ```sh
-$sh microk8s kubectl port-forward -n monitoring service/grafana --address 0.0.0.0 3000:3000
+$ microk8s kubectl port-forward -n monitoring service/grafana --address 0.0.0.0 3000:3000
 ```txt
 Forwarding from 0.0.0.0:3000 -> 3000
 ```
